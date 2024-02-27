@@ -1,6 +1,9 @@
-import './index.css'
 import {Component} from 'react'
+import {v4 as uuidV4} from 'uuid'
+
 import TodoItem from '../TodoItem'
+
+import './index.css'
 
 const initialTodosList = [
   {
@@ -37,30 +40,70 @@ const initialTodosList = [
   },
 ]
 
-// Write your code here
-
 class SimpleTodos extends Component {
-  state = {TodoList: initialTodosList}
+  state = {
+    todosList: initialTodosList,
+    titleInput: '',
+  }
+
+  renderTodoInputField = () => {
+    const {titleInput} = this.state
+
+    const onChangeHandler = event => {
+      this.setState({titleInput: event.target.value})
+    }
+
+    const onAddTodo = () => {
+      if (titleInput === '') return
+
+      this.setState(prevState => ({
+        todosList: [...prevState.todosList, {id: uuidV4(), title: titleInput}],
+        titleInput: '',
+      }))
+    }
+
+    return (
+      <div className="title-input-container">
+        <input value={titleInput} onChange={onChangeHandler} />
+        <button className="add-btn" type="button" onClick={onAddTodo}>
+          Add
+        </button>
+      </div>
+    )
+  }
 
   deleteTodo = id => {
-    const {TodoList} = this.state
-    const filteredTodolist = TodoList.filter(each => each.id !== id)
-    this.setState({TodoList: filteredTodolist})
+    const {todosList} = this.state
+    const updatedTodosList = todosList.filter(eachTodo => eachTodo.id !== id)
+
+    this.setState({
+      todosList: updatedTodosList,
+    })
+  }
+
+  saveTodo = task => {
+    this.setState(prevState => ({
+      todosList: prevState.todosList.map(item =>
+        item.id === task.id ? task : item,
+      ),
+    }))
   }
 
   render() {
-    const {TodoList} = this.state
+    const {todosList} = this.state
 
     return (
       <div className="app-container">
         <div className="simple-todos-container">
           <h1 className="heading">Simple Todos</h1>
+          {this.renderTodoInputField()}
           <ul className="todos-list">
-            {TodoList.map(eachTodo => (
+            {todosList.map(eachTodo => (
               <TodoItem
-                Todo={eachTodo}
                 key={eachTodo.id}
+                todoDetails={eachTodo}
                 deleteTodo={this.deleteTodo}
+                saveTodo={this.saveTodo}
               />
             ))}
           </ul>
